@@ -1,4 +1,4 @@
-ul// 1. ajax와 xhr & fetch
+// 1. ajax와 xhr & fetch
 // https://junhobaik.github.io/ajax-xhr-fetch/
 // https://velog.io/@dasssseul/JS-%EB%B9%84%EB%8F%99%EA%B8%B0-%ED%86%B5%EC%8B%A0-%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0XHR%EA%B3%BC-Fetch-API
 
@@ -19,36 +19,48 @@ const CONTENT_URL = (url) => `https://api.hnpwa.com/v0/item/${url}.json`;
 const getData = (url) => {
   ajax.open("GET", url, false);
   ajax.send();
+
   return JSON.parse(ajax.response);
 };
 
+const newsFeed = () => {
+  const newsFeeds = getData(NEWS_URL);
+  const newsList = ["<ul>"];
 
-const newsFeed = getData(NEWS_URL);
-const ul = document.createElement("ul");
+  newsFeeds.forEach((item) => {
+    newsList.push(`
+      <li>
+        <a href="#${item.id}">
+          ${item.title} (${item.comments_count})
+        </a>
+      </li>
+    `);
+  });
+  newsList.push("</ul>");
+  container.innerHTML = newsList.join("");
+};
 
-window.addEventListener("hashchange", () => {
+const newsDetail = () => {
   const newsContent = getData(CONTENT_URL(location.hash.substr(1)));
 
   container.innerHTML = `
     <h1>${newsContent.title}</h1>
+
     <div>
       <a href="#">목록으로</a>
     </div>
   `;
+};
 
-});
+const router = () => {
+  const routePath = location.hash;
 
-const newsList = ['<ul>']
-newsFeed.forEach((item) => {
-    newsList.push(`
-    <li>
-      <a href="#${item.id}">
-        ${item.title} (${item.comments_count})
-      </a>
-    </li>
-  `);
-});
-newsList.push('</ul>')
+  if (routePath === "") {
+    newsFeed();
+  } else {
+    newsDetail();
+  }
+}
 
-
-container.innerHTML = newsList.join('')
+window.addEventListener("hashchange", router);
+router();
