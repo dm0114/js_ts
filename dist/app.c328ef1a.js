@@ -134,8 +134,15 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 // SPA - 클라이언트에서 url에 해당하는 UI를 그리는 코드(함수)를 실행한다.
 // MPA - 서버에서 url에 해당하는 html 파일을 제공해준다.
 
-// 5. 페이징
-// 현재 페이지의 변수 필요 -> 전역 정보인지, 함수 내에서만 필요한 정보인지 
+// 5. 페이지네이션
+// 현재 페이지의 변수 필요 -> 전역 정보인지, 함수 내에서만 필요한 정보인지
+
+// 6. 템플릿 렌더링 - 템플릿으로 복잡도 낮추기
+// 템플릿 기법 - 코드와 UI를 분리하여 코드의 복잡도를 낮춘다.
+
+// 7.템플릿 방식의 단점과 재귀호출을 통한 댓글, 대댓글 구현
+// 템플릿 방식의 단점 - 마킹된 데이터의 수 만큼 replace 요구 => 라이브러리를 통한 보완 필요,,
+// 끝을 알 수 없는 구조 -> 재귀 함수로 끝까지 추적
 
 var container = document.getElementById("root");
 var content = document.createElement("div");
@@ -146,33 +153,61 @@ var CONTENT_URL = function CONTENT_URL(url) {
 };
 var store = {
   currentPage: 1,
-  maxPage: 0
+  maxPage: 0,
+  feeds: []
 };
 var getData = function getData(url) {
   ajax.open("GET", url, false);
   ajax.send();
   return JSON.parse(ajax.response);
 };
+function makeFeeds(feeds) {
+  for (var i = 0; i < feeds.length; i++) {
+    feeds[i].read = false;
+  }
+  return feeds;
+}
 var newsFeed = function newsFeed() {
   var newsFeeds = getData(NEWS_URL);
   store.maxPage = Math.ceil(newsFeeds.length / 10);
-  var newsList = ["<ul>"];
+  var template = "\n    <div class=\"bg-gray-600 min-h-screen\">\n      <div class=\"bg-white text-xl\">\n        <div class=\"mx-auto px-4\">\n          <div class=\"flex justify-between items-center py-6\">\n            <div class=\"flex justify-start\">\n              <h1 class=\"font-extrabold\">Hacker News</h1>\n            </div>\n            <div class=\"items-center justify-end\">\n              <a href=\"#/page/{{__prev_page__}}\" class=\"text-gray-500\">\n                Previous\n              </a>\n              <a href=\"#/page/{{__next_page__}}\" class=\"text-gray-500 ml-4\">\n                Next\n              </a>\n            </div>\n          </div> \n        </div>\n      </div>\n      <div class=\"p-4 text-2xl text-gray-700\">\n        {{__news_feed__}}        \n      </div>\n    </div>\n  ";
+  var newsList = [];
+  console.log(newsFeeds);
   for (var i = (store.currentPage - 1) * 10; i < store.currentPage * 10; i++) {
-    newsList.push("\n      <li>\n        <a href=\"#/show/".concat(newsFeeds[i].id, "\">\n          ").concat(newsFeeds[i].title, " (").concat(newsFeeds[i].comments_count, ")\n        </a>\n      </li>\n    "));
+    newsList.push("\n      <div class=\"p-6 ".concat(newsFeeds[i].read ? "bg-red-500" : "bg-white", " mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100\">\n        <div class=\"flex\">\n          <div class=\"flex-auto\">\n            <a href=\"#/show/").concat(newsFeeds[i].id, "\">").concat(newsFeeds[i].title, "</a>  \n          </div>\n          <div class=\"text-center text-sm\">\n            <div class=\"w-10 text-white bg-green-300 rounded-lg px-0 py-2\">").concat(newsFeeds[i].comments_count, "</div>\n          </div>\n        </div>\n        <div class=\"flex mt-3\">\n          <div class=\"grid grid-cols-3 text-sm text-gray-500\">\n            <div><i class=\"fas fa-user mr-1\"></i>").concat(newsFeeds[i].user, "</div>\n            <div><i class=\"fas fa-heart mr-1\"></i>").concat(newsFeeds[i].points, "</div>\n            <div><i class=\"far fa-clock mr-1\"></i>").concat(newsFeeds[i].time_ago, "</div>\n          </div>  \n        </div>\n      </div>    \n    "));
   }
-  newsList.push("</ul>");
-  newsList.push("\n      <div>\n        <a href=\"#/page/".concat(store.currentPage > 1 ? store.currentPage - 1 : 1, "\">\uC774\uC804 \uD398\uC774\uC9C0</a>\n        <a href=\"#/page/").concat(store.currentPage < store.maxPage ? store.currentPage + 1 : store.maxPage, " \">\uB2E4\uC74C \uD398\uC774\uC9C0</a>\n      </div>\n  "));
-  container.innerHTML = newsList.join("");
+  template = template.replace("{{__news_feed__}}", newsList.join(""));
+  template = template.replace("{{__prev_page__}}", store.currentPage > 1 ? store.currentPage - 1 : 1);
+  template = template.replace("{{__next_page__}}", store.currentPage < store.maxPage ? store.currentPage + 1 : store.maxPage);
+  container.innerHTML = template;
 };
 var newsDetail = function newsDetail() {
   var newsContent = getData(CONTENT_URL(location.hash.substr(7)));
-  container.innerHTML = "\n    <h1>".concat(newsContent.title, "</h1>\n\n    <div>\n      <a href=\"#/page/").concat(store.currentPage, "\">\uBAA9\uB85D\uC73C\uB85C</a>\n    </div>\n  ");
+  var template = "\n    <div class=\"bg-gray-600 min-h-screen pb-8\">\n      <div class=\"bg-white text-xl\">\n        <div class=\"mx-auto px-4\">\n          <div class=\"flex justify-between items-center py-6\">\n            <div class=\"flex justify-start\">\n              <h1 class=\"font-extrabold\">Hacker News</h1>\n            </div>\n            <div class=\"items-center justify-end\">\n              <a href=\"#/page/".concat(store.currentPage, "\" class=\"text-gray-500\">\n                <i class=\"fa fa-times\"></i>\n              </a>\n            </div>\n          </div>\n        </div>\n      </div>\n\n      <div class=\"h-full border rounded-xl bg-white m-6 p-4 \">\n        <h2>").concat(newsContent.title, "</h2>\n        <div class=\"text-gray-400 h-20\">\n          ").concat(newsContent.content, "\n        </div>\n\n        {{__comments__}}\n\n      </div>\n    </div>\n  ");
+  for (var i = 0; i < store.feeds.length; i++) {
+    if (store.feeds[i].id === Number(id)) {
+      store.feeds[i].read = true;
+      break;
+    }
+  }
+  function makeComment(comments) {
+    var called = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+    var commentString = [];
+    for (var _i = 0; _i < comments.length; _i++) {
+      commentString.push("\n        <div style=\"padding-left: ".concat(called * 40, "px;\" class=\"mt-4\">\n          <div class=\"text-gray-400\">\n            <i class=\"fa fa-sort-up mr-2\"></i>\n            <strong>").concat(comments[_i].user, "</strong> ").concat(comments[_i].time_ago, "\n          </div>\n          <p class=\"text-gray-700\">").concat(comments[_i].content, "</p>\n        </div>      \n      "));
+      if (comments[_i].comments.length > 0) {
+        commentString.push(makeComment(comments[_i].comments, called + 1));
+      }
+    }
+    return commentString.join("");
+  }
+  container.innerHTML = template.replace("{{__comments__}}", makeComment(newsContent.comments));
 };
 var router = function router() {
   var routePath = location.hash;
   if (routePath === "") {
     newsFeed();
-  } else if (routePath.indexOf('#/page/') >= 0) {
+  } else if (routePath.indexOf("#/page/") >= 0) {
     store.currentPage = Number(routePath.substr(7));
     newsFeed();
   } else {
@@ -206,7 +241,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52710" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49909" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
