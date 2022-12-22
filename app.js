@@ -26,6 +26,7 @@
 
 // 8. 상태의 추가
 // 핵심 코드 - Line60 : getData로부터 makeFeeds를 값으로 반환
+// 기능 추가 및 개선 -> 코드의 복잡도 관리 : 개발자의 핵심 역량 (확장성, 유연성)
 
 const container = document.getElementById("root");
 const content = document.createElement("div");
