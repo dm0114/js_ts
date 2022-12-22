@@ -130,12 +130,23 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 // DOM API는 UI의 구조가 잘 드러나지 않는다.
 // 해결 방법 - DOM API를 사용하지 않는다..? => 문자열로 만든다.
 
+// 4. 라우터 - 화면 처리기
+// SPA - 클라이언트에서 url에 해당하는 UI를 그리는 코드(함수)를 실행한다.
+// MPA - 서버에서 url에 해당하는 html 파일을 제공해준다.
+
+// 5. 페이징
+// 현재 페이지의 변수 필요 -> 전역 정보인지, 함수 내에서만 필요한 정보인지 
+
 var container = document.getElementById("root");
 var content = document.createElement("div");
 var ajax = new XMLHttpRequest();
 var NEWS_URL = "https://api.hnpwa.com/v0/news/1.json";
 var CONTENT_URL = function CONTENT_URL(url) {
   return "https://api.hnpwa.com/v0/item/".concat(url, ".json");
+};
+var store = {
+  currentPage: 1,
+  maxPage: 0
 };
 var getData = function getData(url) {
   ajax.open("GET", url, false);
@@ -144,20 +155,25 @@ var getData = function getData(url) {
 };
 var newsFeed = function newsFeed() {
   var newsFeeds = getData(NEWS_URL);
+  store.maxPage = Math.ceil(newsFeeds.length / 10);
   var newsList = ["<ul>"];
-  newsFeeds.forEach(function (item) {
-    newsList.push("\n      <li>\n        <a href=\"#".concat(item.id, "\">\n          ").concat(item.title, " (").concat(item.comments_count, ")\n        </a>\n      </li>\n    "));
-  });
+  for (var i = (store.currentPage - 1) * 10; i < store.currentPage * 10; i++) {
+    newsList.push("\n      <li>\n        <a href=\"#/show/".concat(newsFeeds[i].id, "\">\n          ").concat(newsFeeds[i].title, " (").concat(newsFeeds[i].comments_count, ")\n        </a>\n      </li>\n    "));
+  }
   newsList.push("</ul>");
+  newsList.push("\n      <div>\n        <a href=\"#/page/".concat(store.currentPage > 1 ? store.currentPage - 1 : 1, "\">\uC774\uC804 \uD398\uC774\uC9C0</a>\n        <a href=\"#/page/").concat(store.currentPage < store.maxPage ? store.currentPage + 1 : store.maxPage, " \">\uB2E4\uC74C \uD398\uC774\uC9C0</a>\n      </div>\n  "));
   container.innerHTML = newsList.join("");
 };
 var newsDetail = function newsDetail() {
-  var newsContent = getData(CONTENT_URL(location.hash.substr(1)));
-  container.innerHTML = "\n    <h1>".concat(newsContent.title, "</h1>\n\n    <div>\n      <a href=\"#\">\uBAA9\uB85D\uC73C\uB85C</a>\n    </div>\n  ");
+  var newsContent = getData(CONTENT_URL(location.hash.substr(7)));
+  container.innerHTML = "\n    <h1>".concat(newsContent.title, "</h1>\n\n    <div>\n      <a href=\"#/page/").concat(store.currentPage, "\">\uBAA9\uB85D\uC73C\uB85C</a>\n    </div>\n  ");
 };
 var router = function router() {
   var routePath = location.hash;
   if (routePath === "") {
+    newsFeed();
+  } else if (routePath.indexOf('#/page/') >= 0) {
+    store.currentPage = Number(routePath.substr(7));
     newsFeed();
   } else {
     newsDetail();
@@ -190,7 +206,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53072" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52710" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
