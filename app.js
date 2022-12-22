@@ -20,9 +20,12 @@
 // 6. 템플릿 렌더링 - 템플릿으로 복잡도 낮추기
 // 템플릿 기법 - 코드와 UI를 분리하여 코드의 복잡도를 낮춘다.
 
-// 7.템플릿 방식의 단점과 재귀호출을 통한 댓글, 대댓글 구현
+// 7. 템플릿 방식의 단점과 재귀호출을 통한 댓글, 대댓글 구현
 // 템플릿 방식의 단점 - 마킹된 데이터의 수 만큼 replace 요구 => 라이브러리를 통한 보완 필요,,
 // 끝을 알 수 없는 구조 -> 재귀 함수로 끝까지 추적
+
+// 8. 상태의 추가
+// 핵심 코드 - Line60 : getData로부터 makeFeeds를 값으로 반환
 
 const container = document.getElementById("root");
 const content = document.createElement("div");
@@ -51,8 +54,13 @@ function makeFeeds(feeds) {
 }
 
 const newsFeed = () => {
-  const newsFeeds = getData(NEWS_URL);
-  store.maxPage = Math.ceil(newsFeeds.length / 10);
+  let newsFeeds = store.feeds;
+
+  if (newsFeeds.length === 0) {
+    newsFeeds = store.feeds = makeFeeds(getData(NEWS_URL));
+
+    store.maxPage = Math.ceil(newsFeeds.length / 10);
+  }
 
   let template = `
     <div class="bg-gray-600 min-h-screen">
@@ -80,7 +88,6 @@ const newsFeed = () => {
   `;
 
   const newsList = [];
-  console.log(newsFeeds);
   for (let i = (store.currentPage - 1) * 10; i < store.currentPage * 10; i++) {
     newsList.push(`
       <div class="p-6 ${
@@ -119,7 +126,6 @@ const newsFeed = () => {
 
   container.innerHTML = template;
 };
-
 
 const newsDetail = () => {
   const newsContent = getData(CONTENT_URL(location.hash.substr(7)));
@@ -186,7 +192,7 @@ const newsDetail = () => {
     "{{__comments__}}",
     makeComment(newsContent.comments)
   );
-}
+};
 
 const router = () => {
   const routePath = location.hash;

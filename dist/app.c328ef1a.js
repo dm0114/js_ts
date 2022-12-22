@@ -140,9 +140,12 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 // 6. 템플릿 렌더링 - 템플릿으로 복잡도 낮추기
 // 템플릿 기법 - 코드와 UI를 분리하여 코드의 복잡도를 낮춘다.
 
-// 7.템플릿 방식의 단점과 재귀호출을 통한 댓글, 대댓글 구현
+// 7. 템플릿 방식의 단점과 재귀호출을 통한 댓글, 대댓글 구현
 // 템플릿 방식의 단점 - 마킹된 데이터의 수 만큼 replace 요구 => 라이브러리를 통한 보완 필요,,
 // 끝을 알 수 없는 구조 -> 재귀 함수로 끝까지 추적
+
+// 8. 상태의 추가
+// 핵심 코드 - Line60 : getData로부터 makeFeeds를 값으로 반환
 
 var container = document.getElementById("root");
 var content = document.createElement("div");
@@ -168,11 +171,13 @@ function makeFeeds(feeds) {
   return feeds;
 }
 var newsFeed = function newsFeed() {
-  var newsFeeds = getData(NEWS_URL);
-  store.maxPage = Math.ceil(newsFeeds.length / 10);
+  var newsFeeds = store.feeds;
+  if (newsFeeds.length === 0) {
+    newsFeeds = store.feeds = makeFeeds(getData(NEWS_URL));
+    store.maxPage = Math.ceil(newsFeeds.length / 10);
+  }
   var template = "\n    <div class=\"bg-gray-600 min-h-screen\">\n      <div class=\"bg-white text-xl\">\n        <div class=\"mx-auto px-4\">\n          <div class=\"flex justify-between items-center py-6\">\n            <div class=\"flex justify-start\">\n              <h1 class=\"font-extrabold\">Hacker News</h1>\n            </div>\n            <div class=\"items-center justify-end\">\n              <a href=\"#/page/{{__prev_page__}}\" class=\"text-gray-500\">\n                Previous\n              </a>\n              <a href=\"#/page/{{__next_page__}}\" class=\"text-gray-500 ml-4\">\n                Next\n              </a>\n            </div>\n          </div> \n        </div>\n      </div>\n      <div class=\"p-4 text-2xl text-gray-700\">\n        {{__news_feed__}}        \n      </div>\n    </div>\n  ";
   var newsList = [];
-  console.log(newsFeeds);
   for (var i = (store.currentPage - 1) * 10; i < store.currentPage * 10; i++) {
     newsList.push("\n      <div class=\"p-6 ".concat(newsFeeds[i].read ? "bg-red-500" : "bg-white", " mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100\">\n        <div class=\"flex\">\n          <div class=\"flex-auto\">\n            <a href=\"#/show/").concat(newsFeeds[i].id, "\">").concat(newsFeeds[i].title, "</a>  \n          </div>\n          <div class=\"text-center text-sm\">\n            <div class=\"w-10 text-white bg-green-300 rounded-lg px-0 py-2\">").concat(newsFeeds[i].comments_count, "</div>\n          </div>\n        </div>\n        <div class=\"flex mt-3\">\n          <div class=\"grid grid-cols-3 text-sm text-gray-500\">\n            <div><i class=\"fas fa-user mr-1\"></i>").concat(newsFeeds[i].user, "</div>\n            <div><i class=\"fas fa-heart mr-1\"></i>").concat(newsFeeds[i].points, "</div>\n            <div><i class=\"far fa-clock mr-1\"></i>").concat(newsFeeds[i].time_ago, "</div>\n          </div>  \n        </div>\n      </div>    \n    "));
   }
@@ -241,7 +246,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49909" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55279" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
