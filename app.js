@@ -1,4 +1,4 @@
-// 1. ajax와 xhr & fetch
+ul// 1. ajax와 xhr & fetch
 // https://junhobaik.github.io/ajax-xhr-fetch/
 // https://velog.io/@dasssseul/JS-%EB%B9%84%EB%8F%99%EA%B8%B0-%ED%86%B5%EC%8B%A0-%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0XHR%EA%B3%BC-Fetch-API
 
@@ -11,49 +11,44 @@
 // 해결 방법 - DOM API를 사용하지 않는다..? => 문자열로 만든다.
 
 const container = document.getElementById("root");
-const content = document.createElement('div');
+const content = document.createElement("div");
 const ajax = new XMLHttpRequest();
-const NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
+const NEWS_URL = "https://api.hnpwa.com/v0/news/1.json";
 const CONTENT_URL = (url) => `https://api.hnpwa.com/v0/item/${url}.json`;
 
 const getData = (url) => {
-  ajax.open('GET', url, false);
+  ajax.open("GET", url, false);
   ajax.send();
   return JSON.parse(ajax.response);
-}
+};
 
-const newsFeed = getData(NEWS_URL)
-const ul = document.createElement('ul');
 
-window.addEventListener('hashchange', function() {
+const newsFeed = getData(NEWS_URL);
+const ul = document.createElement("ul");
+
+window.addEventListener("hashchange", () => {
   const newsContent = getData(CONTENT_URL(location.hash.substr(1)));
-  const title = document.createElement('h1');
 
-  title.innerHTML = newsContent.title;
-  content.appendChild(title);
-})
+  container.innerHTML = `
+    <h1>${newsContent.title}</h1>
+    <div>
+      <a href="#">목록으로</a>
+    </div>
+  `;
 
+});
+
+const newsList = ['<ul>']
 newsFeed.forEach((item) => {
-  const div = document.createElement("div");
-  
-  // const li = document.createElement("li");
-  // const a = document.createElement("a");
-  // a.href = `#${item.id}`;
-  // a.innerHTML = `${item.title} (${item.comments_count})`;
-  // ul.appendChild(li);
-  // li.appendChild(a);
-
-  div.innerHTML = `
+    newsList.push(`
     <li>
       <a href="#${item.id}">
         ${item.title} (${item.comments_count})
       </a>
     </li>
-  `;
+  `);
+});
+newsList.push('</ul>')
 
-  ul.appendChild(div.firstElementChild)
-})
 
-
-container.appendChild(ul);
-container.appendChild(content);
+container.innerHTML = newsList.join('')

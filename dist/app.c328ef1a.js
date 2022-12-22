@@ -118,7 +118,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   return newRequire;
 })({"app.js":[function(require,module,exports) {
-// 1. ajax와 xhr & fetch
+ul; // 1. ajax와 xhr & fetch
 // https://junhobaik.github.io/ajax-xhr-fetch/
 // https://velog.io/@dasssseul/JS-%EB%B9%84%EB%8F%99%EA%B8%B0-%ED%86%B5%EC%8B%A0-%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0XHR%EA%B3%BC-Fetch-API
 
@@ -131,40 +131,29 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 // 해결 방법 - DOM API를 사용하지 않는다..? => 문자열로 만든다.
 
 var container = document.getElementById("root");
-var content = document.createElement('div');
+var content = document.createElement("div");
 var ajax = new XMLHttpRequest();
-var NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
+var NEWS_URL = "https://api.hnpwa.com/v0/news/1.json";
 var CONTENT_URL = function CONTENT_URL(url) {
   return "https://api.hnpwa.com/v0/item/".concat(url, ".json");
 };
 var getData = function getData(url) {
-  ajax.open('GET', url, false);
+  ajax.open("GET", url, false);
   ajax.send();
   return JSON.parse(ajax.response);
 };
 var newsFeed = getData(NEWS_URL);
-var ul = document.createElement('ul');
-window.addEventListener('hashchange', function () {
+var ul = document.createElement("ul");
+window.addEventListener("hashchange", function () {
   var newsContent = getData(CONTENT_URL(location.hash.substr(1)));
-  var title = document.createElement('h1');
-  title.innerHTML = newsContent.title;
-  content.appendChild(title);
+  container.innerHTML = "\n    <h1>".concat(newsContent.title, "</h1>\n    <div>\n      <a href=\"#\">\uBAA9\uB85D\uC73C\uB85C</a>\n    </div>\n  ");
 });
+var newsList = ['<ul>'];
 newsFeed.forEach(function (item) {
-  var div = document.createElement("div");
-
-  // const li = document.createElement("li");
-  // const a = document.createElement("a");
-  // a.href = `#${item.id}`;
-  // a.innerHTML = `${item.title} (${item.comments_count})`;
-  // ul.appendChild(li);
-  // li.appendChild(a);
-
-  div.innerHTML = "\n    <li>\n      <a href=\"#".concat(item.id, "\">\n        ").concat(item.title, " (").concat(item.comments_count, ")\n      </a>\n    </li>\n  ");
-  ul.appendChild(div.firstElementChild);
+  newsList.push("\n    <li>\n      <a href=\"#".concat(item.id, "\">\n        ").concat(item.title, " (").concat(item.comments_count, ")\n      </a>\n    </li>\n  "));
 });
-container.appendChild(ul);
-container.appendChild(content);
+newsList.push('</ul>');
+container.innerHTML = newsList.join('');
 },{}],"../../../.config/yarn/global/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -190,7 +179,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64609" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53860" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
